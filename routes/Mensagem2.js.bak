@@ -1,0 +1,37 @@
+/*
+	Descrição	: Componente de um input que usuário pode digitar o Mensagem ou selecionar de um combo
+	Autor		: CYI
+	Data		: 28/07/2025
+*/
+const express = require('express');
+const { body, validationResult } = require('express-validator');
+const router = express.Router();
+const { getPool } = require('../db');
+
+router.get('/mensagemapi2', async (req, res) => {
+	const id = req.query.id;
+	try {
+		const pool = await getPool();
+		let query = 'SELECT Id, keyId FROM Mensagem';
+		let params = [];
+		if (id) {query += ' WHERE Id = ?'; params.push(id); };
+		query += ' order by 2';
+		const [results] = await pool.query(query, params);
+		if (results.length === 0) {
+			return res.status(404).json({ message: 'Mensagem não encontrado' });
+		}
+		const jsonResults = results.map(row => ({
+			id: row.Id,
+			keyid: row.keyId,
+		}));
+		res.json(jsonResults);
+	} catch (err) {
+		console.error('Erro GET /mensagemapi2', err);
+		res.status(500).json({ error: err.message });
+	}
+	});
+
+
+
+module.exports = router;
+
