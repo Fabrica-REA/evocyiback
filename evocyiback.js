@@ -20,6 +20,9 @@ const tipomensagemRoutes = require('./routes/TipoMensagem');
 const pessoastatusRoutes = require('./routes/PessoaStatus');
 const pessoastatus2Routes = require('./routes/PessoaStatus2');
 const pessoafotoRoutes = require('./routes/PessoaFoto');
+const mensagemarquivoRoutes = require('./routes/MensagemArquivo');
+const grupoRoutes = require('./routes/Grupo');
+const grupo2Routes = require('./routes/Grupo2');
 // ____________________ end import routes ____________________
 
 const app = express();
@@ -62,6 +65,9 @@ app.use(config.api.prefix, tipomensagemRoutes);
 app.use(config.api.prefix, pessoastatusRoutes);
 app.use(config.api.prefix, pessoastatus2Routes);
 app.use(config.api.prefix, pessoafotoRoutes);
+app.use(config.api.prefix, mensagemarquivoRoutes);
+app.use(config.api.prefix, grupoRoutes);
+app.use(config.api.prefix, grupo2Routes);
 // ____________________ use routes ____________________
 
 app.use((err, req, res, next) => {
@@ -82,5 +88,4 @@ async function startServer() {
 
 startServer();
 
-
-
+// curl http://200.17.199.250:5006/whatscyiapi/tipomensagemapi
