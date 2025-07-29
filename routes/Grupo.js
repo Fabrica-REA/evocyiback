@@ -35,7 +35,6 @@ const validateGrupoInput = [
 	body('chatid').notEmpty().withMessage('chatId é obrigatória.'),
 	body('dono').notEmpty().withMessage('Dono é obrigatória.'),
 	body('titulo').notEmpty().withMessage('Titulo é obrigatória.'),
-	body('descricao').notEmpty().withMessage('Descricao é obrigatória.'),
 	body('id').optional({ values: 'falsy' }).isInt({ min: 1 }).withMessage('Código Id deve ser um inteiro positivo se informado.'),
 ];
 router.post('/grupoapi', validateGrupoInput, async (req, res) => {
@@ -48,7 +47,8 @@ router.post('/grupoapi', validateGrupoInput, async (req, res) => {
 			errors: errors.array() 
 		});
 	}
-    const { id, chatid, dono, titulo, descricao } = req.body;
+  const descricao = req.body.descricao === null || req.body.descricao === undefined ? '' : req.body.descricao;
+    const { id, chatid, dono, titulo } = req.body;
 
     try {
       const pool = await getPool();
@@ -96,7 +96,6 @@ const validateGrupoInputIU = [
 	body('chatid').notEmpty().withMessage('chatId é obrigatória.'),
 	body('dono').notEmpty().withMessage('Dono é obrigatória.'),
 	body('titulo').notEmpty().withMessage('Titulo é obrigatória.'),
-	body('descricao').notEmpty().withMessage('Descricao é obrigatória.'),
 ];
 router.post('/grupoiu', validateGrupoInputIU, async (req, res) => {
 	const errors = validationResult(req);
@@ -108,7 +107,8 @@ router.post('/grupoiu', validateGrupoInputIU, async (req, res) => {
 			errors: errors.array() 
 		});
 	}
-    const { id, chatid, dono, titulo, descricao } = req.body;
+  const descricao = req.body.descricao === null || req.body.descricao === undefined ? '' : req.body.descricao;
+    const { id, chatid, dono, titulo } = req.body;
 
     try {
       const pool = await getPool();
