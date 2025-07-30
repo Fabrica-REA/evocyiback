@@ -74,11 +74,10 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ success: false, message: 'Internal Server Error' });
-});
-
+//app.use((err, req, res, next) => {
+//  console.error(err.stack);
+//  res.status(500).json({ success: false, message: 'Internal Server Error' });
+//});
 async function startServer() {
   try {
     await getPool(config.db, config.db.connectionLimit);
