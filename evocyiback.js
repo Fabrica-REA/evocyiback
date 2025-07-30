@@ -69,6 +69,10 @@ app.use(config.api.prefix, mensagemarquivoRoutes);
 app.use(config.api.prefix, grupoRoutes);
 app.use(config.api.prefix, grupo2Routes);
 // ____________________ use routes ____________________
+app.use((req, res, next) => {
+  console.log(`Requisição: ${req.url}`);
+  next();
+});
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

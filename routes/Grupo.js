@@ -94,7 +94,6 @@ router.post('/grupoapi', validateGrupoInput, async (req, res) => {
 const validateGrupoInputIU = [
 	
 	body('chatid').notEmpty().withMessage('chatId é obrigatória.'),
-	body('dono').notEmpty().withMessage('Dono é obrigatória.'),
 	body('titulo').notEmpty().withMessage('Titulo é obrigatória.'),
 ];
 router.post('/grupoiu', validateGrupoInputIU, async (req, res) => {
@@ -108,7 +107,8 @@ router.post('/grupoiu', validateGrupoInputIU, async (req, res) => {
 		});
 	}
   const descricao = req.body.descricao === null || req.body.descricao === undefined ? '' : req.body.descricao;
-    const { id, chatid, dono, titulo } = req.body;
+  const dono = req.body.dono === null || req.body.dono === undefined ? '' : req.body.dono;
+    const { id, chatid, titulo } = req.body;
 
     try {
       const pool = await getPool();
