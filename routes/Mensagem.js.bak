@@ -1,6 +1,6 @@
 /*
 Descrição: API para a Página de cadastro da tabela Mensagem
-Autor    : CYI 28/07/2025
+Autor    : CYI 30/07/2025
 */
 const express = require('express');
 const { param, body, validationResult } = require('express-validator');
@@ -42,9 +42,6 @@ const validateMensagemInput = [
 	body('foneid').notEmpty().withMessage('foneId é obrigatória.'),
 	body('id').optional({ values: 'falsy' }).isInt({ min: 1 }).withMessage('Código Id deve ser um inteiro positivo se informado.'),
 ];
-
-
-
 router.post('/mensagemapi', validateMensagemInput, async (req, res) => {
 	const errors = validationResult(req);
 	if (!errors.isEmpty()) {
@@ -98,7 +95,65 @@ router.post('/mensagemapi', validateMensagemInput, async (req, res) => {
     }
   });
 
+const validateMensagemInputIU = [
+	body('mensagemid').optional({ values: 'falsy' }).isInt().withMessage('Código MensagemId deve ser um inteiro se informado.'),
+	body('tipomensagemid').optional({ values: 'falsy' }).isInt().withMessage('Código TipoMensagemId deve ser um inteiro se informado.'),
+	body('keyid').notEmpty().withMessage('keyId é obrigatória.'),
+	body('foneid').notEmpty().withMessage('foneId é obrigatória.'),
+	body('id').optional({ values: 'falsy' }).isInt({ min: 1 }).withMessage('Código Id deve ser um inteiro positivo se informado.'),
+];
+router.post('/mensagemiu', validateMensagemInputIU, async (req, res) => {
+	const errors = validationResult(req);
+	if (!errors.isEmpty()) {
+		const errorMessages = errors.errors.map(error => error.msg);
+		return res.status(400).json({ 
+			success: false, 
+			message: 'Dados de entrada inválidos: ' + errorMessages.join(''),
+			errors: errors.array() 
+		});
+	}
+    const { id, keyid, fromme, foneid, mensagemid, mensagem, tipomensagemid, messagetimestamp, datahora } = req.body;
 
+    try {
+      const pool = await getPool();
+        const [results] = await pool.query(
+            'CALL spIU_Mensagem( ?,  ?, ?, ?, ?, ?, ?, ?, ?,  ?, ? '
+				+ '@Id @MensagemId, @TipoMensagemId', 
+			[id,  keyid, fromme, foneid, mensagemid, mensagem, tipomensagemid, messagetimestamp, datahora,  mensagemid, tipomensagemid ]
+		);
+
+		const [idResult] = await pool.query('SELECT '@Id as Id, '
+			'@MensagemId as MensagemId, @TipoMensagemId as TipoMensagemId'
+		);
+
+        const [idResult] = await pool.query('SELECT @pout_Id as id');
+        const insertedId = idResult[0].id;
+
+        res.json({
+            success: true,
+            message: id ? 'Mensagem atualizada com sucesso' : 'Mensagem criada com sucesso',
+            Id : idResult[0].Id, 
+			MensagemId : idResult[0].MensagemId, TipoMensagemId : idResult[0].TipoMensagemId
+        });
+    } catch (err) {
+      console.error('Erro ao atualizar:', err);
+      res.status(500).json({ success: false, message: 'Server error', error: err.message });
+    }
+  });
+/* exemplo: ********* pode excluir comentários
+const validateParams = [
+  param('id').isInt().withMessage('Id must be an integer'),
+  param('sequencia').notEmpty().withMessage('Sequencia cannot be empty'),
+];
+router.delete('/mensagemapid/:id/:sequencia', validateParams, async (req, res) => {
+
+antigo:
+const validateIdParam = param('id')
+  .isInt({ min: 1 })
+  .withMessage('Id must be a positive integer.');
+router.delete('/mensagemapid/:id', validateIdParam, async (req, res) => {
+**** fazer: isInt está fixo, deve mudar de acordo com o tipo
+*/
 const validateParamsMensagemapid = [
   param('id').isInt().withMessage('Id must be an bigint unsigned'),
 ];
@@ -123,80 +178,6 @@ router.delete('/mensagemapid/:id', validateParamsMensagemapid, async (req, res) 
     console.error('Erro ao apagar Mensagem:', err);
     return res.status(500).json({ success: false, message: 'Server error', error: err.message });
   }
-});
-
-// Endpoint para spIU_Mensagem
-const validateMensagemIUInput = [
-	body('keyId').notEmpty().withMessage('keyId é obrigatório.'),
-	body('fromMe').isBoolean().withMessage('fromMe deve ser um valor booleano.'),
-	body('foneId').notEmpty().withMessage('foneId é obrigatório.'),
-	body('mensagem').optional().isString().withMessage('Mensagem deve ser um texto.'),
-	body('messageTimestamp').optional().isISO8601().withMessage('messageTimestamp deve ser uma data válida no formato ISO8601.'),
-	body('dataHora').optional().isISO8601().withMessage('dataHora deve ser uma data válida no formato ISO8601.'),
-	body('keyIdMensagem').optional().isString().withMessage('keyIdMensagem deve ser um texto.'),
-	body('descricaoTipoMensagem').optional().isString().withMessage('DescricaoTipoMensagem deve ser um texto.')
-];
-router.post('/mensagemiu', validateMensagemIUInput, async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        const errorMessages = errors.array().map(error => error.msg);
-        return res.status(400).json({ 
-            success: false, 
-            message: 'Dados de entrada inválidos: ' + errorMessages.join(', '),
-            errors: errors.array() 
-        });
-    }
-
-    const {
-        id,
-        keyId,
-        fromMe,
-        foneId,
-        mensagem,
-        messageTimestamp,
-        dataHora,
-        keyIdMensagem,
-        descricaoTipoMensagem
-    } = req.body;
-
-    try {
-        const pool = await getPool();
-        
-        // Chamada para a stored procedure
-        const [results] = await pool.query(
-            'CALL spIU_Mensagem(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, @pout_Id)',
-            [
-                id || null,
-                keyId,
-                fromMe,
-                foneId,
-                mensagemId || null,
-                mensagem,
-                tipoMensagemId,
-                messageTimestamp,
-                dataHora,
-                keyIdMensagem,
-                descricaoTipoMensagem
-            ]
-        );
-
-        // Obter o ID retornado pela stored procedure
-        const [idResult] = await pool.query('SELECT @pout_Id as id');
-        const insertedId = idResult[0].id;
-
-        res.json({
-            success: true,
-            message: id ? 'Mensagem atualizada com sucesso' : 'Mensagem criada com sucesso',
-            id: insertedId
-        });
-    } catch (err) {
-        console.error('Erro ao processar mensagem:', err);
-        res.status(500).json({
-            success: false,
-            message: 'Erro ao processar mensagem',
-            error: err.message
-        });
-    }
 });
 
 module.exports = router;

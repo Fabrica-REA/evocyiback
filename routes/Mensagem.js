@@ -122,18 +122,22 @@ router.post('/mensagemiu', validateMensagemInputIU, async (req, res) => {
 			[id,  keyid, fromme, foneid, mensagemid, mensagem, tipomensagemid, messagetimestamp, datahora,  mensagemid, tipomensagemid ]
 		);
 
-		const [idResult] = await pool.query('SELECT '@Id as Id, '
-			'@MensagemId as MensagemId, @TipoMensagemId as TipoMensagemId'
+		const [id,
+			mensagemid, tipomensagemid
+		] = await pool.query('SELECT @Id as Id, '
+			+ '@MensagemId as MensagemId, @TipoMensagemId as TipoMensagemId'
 		);
 
-        const [idResult] = await pool.query('SELECT @pout_Id as id');
+
         const insertedId = idResult[0].id;
+        const insertedMensagemId = idResult[0].mensagemid;
+		const insertedTipoMensagemId = idResult[0].tipomensagemid;
 
         res.json({
             success: true,
             message: id ? 'Mensagem atualizada com sucesso' : 'Mensagem criada com sucesso',
-            Id : idResult[0].Id, 
-			MensagemId : idResult[0].MensagemId, TipoMensagemId : idResult[0].TipoMensagemId
+            Id : idResult[0].id, 
+			MensagemId : idResult[0].mensagemid, TipoMensagemId : idResult[0].tipomensagemid
         });
     } catch (err) {
       console.error('Erro ao atualizar:', err);
