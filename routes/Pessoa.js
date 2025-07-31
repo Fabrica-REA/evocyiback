@@ -95,9 +95,6 @@ router.post('/pessoaapi', validatePessoaInput, async (req, res) => {
 const validatePessoaInputIU = [
 	body('negocio').optional({ values: 'falsy' }).isInt().withMessage('Código Negocio deve ser um inteiro se informado.'),
 	body('foneid').notEmpty().withMessage('foneId é obrigatória.'),
-	body('descricao').notEmpty().withMessage('Descricao é obrigatória.'),
-	body('website').notEmpty().withMessage('website é obrigatória.'),
-	body('nome').notEmpty().withMessage('Nome é obrigatória.'),
 	body('id').optional({ values: 'falsy' }).isInt({ min: 1 }).withMessage('Código Id deve ser um inteiro positivo se informado.'),
 ];
 router.post('/pessoaiu', validatePessoaInputIU, async (req, res) => {

@@ -24,7 +24,13 @@ const mensagemarquivoRoutes = require('./routes/MensagemArquivo');
 const grupoRoutes = require('./routes/Grupo');
 const grupo2Routes = require('./routes/Grupo2');
 // ____________________ end import routes ____________________
-
+console.log({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_DATABASE,
+  connectionLimit: parseInt(process.env.DB_CONNECTION_LIMIT) || 10,
+})
 const app = express();
 const config = {
   db: {
