@@ -1,7 +1,7 @@
 /*
 	Descrição	: Componente de um input que usuário pode digitar o Mensagem ou selecionar de um combo
 	Autor		: CYI
-	Data		: 28/07/2025
+	Data		: 30/07/2025
 */
 const express = require('express');
 const { body, validationResult } = require('express-validator');

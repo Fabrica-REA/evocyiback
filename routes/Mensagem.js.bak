@@ -11,7 +11,8 @@ router.get('/mensagemapi', async (req, res) => {
 	const id = req.query.id;
     try {
       const pool = await getPool(); 
-      const [[results]] = await pool.query('CALL MensagemS(?)', [id]);
+      const [[results]] = await pool.query('CALL MensagemS(?)', 
+		[id]);
 
       const json_results = results.map(row => ({
 		id: row.Id,
@@ -21,12 +22,10 @@ router.get('/mensagemapi', async (req, res) => {
 				mensagemid: row.MensagemId,
 				mensagem: row.Mensagem,
 				tipomensagemid: row.TipoMensagemId,
-				arquivoid: row.ArquivoId,
 				messagetimestamp: row.messageTimestamp,
 				datahora: row.DataHora,
 		keyidmensagem: row.keyIdMensagem,
 				descricaotipomensagem: row.DescricaoTipoMensagem,
-				nomearquivoarquivo: row.NomeArquivoArquivo,
       }));
 
       res.json(json_results);
@@ -39,11 +38,13 @@ router.get('/mensagemapi', async (req, res) => {
 const validateMensagemInput = [
 	body('mensagemid').optional({ values: 'falsy' }).isInt().withMessage('Código MensagemId deve ser um inteiro se informado.'),
 	body('tipomensagemid').optional({ values: 'falsy' }).isInt().withMessage('Código TipoMensagemId deve ser um inteiro se informado.'),
-	body('arquivoid').optional({ values: 'falsy' }).isInt().withMessage('Código ArquivoId deve ser um inteiro se informado.'),
 	body('keyid').notEmpty().withMessage('keyId é obrigatória.'),
 	body('foneid').notEmpty().withMessage('foneId é obrigatória.'),
 	body('id').optional({ values: 'falsy' }).isInt({ min: 1 }).withMessage('Código Id deve ser um inteiro positivo se informado.'),
 ];
+
+
+
 router.post('/mensagemapi', validateMensagemInput, async (req, res) => {
 	const errors = validationResult(req);
 	if (!errors.isEmpty()) {
@@ -54,7 +55,7 @@ router.post('/mensagemapi', validateMensagemInput, async (req, res) => {
 			errors: errors.array() 
 		});
 	}
-    const { id, keyid, fromme, foneid, mensagemid, mensagem, tipomensagemid, arquivoid, messagetimestamp, datahora } = req.body;
+    const { id, keyid, fromme, foneid, mensagemid, mensagem, tipomensagemid, messagetimestamp, datahora } = req.body;
 
     try {
       const pool = await getPool();
@@ -64,16 +65,16 @@ router.post('/mensagemapi', validateMensagemInput, async (req, res) => {
       let insertedId;
 
       if (!id) {
-        query = `INSERT INTO Mensagem (keyId, fromMe, foneId, MensagemId, Mensagem, TipoMensagemId, ArquivoId, messageTimestamp, DataHora) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE 
-		keyId = VALUES(keyId), fromMe = VALUES(fromMe), foneId = VALUES(foneId), MensagemId = VALUES(MensagemId), Mensagem = VALUES(Mensagem), TipoMensagemId = VALUES(TipoMensagemId), ArquivoId = VALUES(ArquivoId), messageTimestamp = VALUES(messageTimestamp), DataHora = VALUES(DataHora)
+        query = `INSERT INTO Mensagem (keyId, fromMe, foneId, MensagemId, Mensagem, TipoMensagemId, messageTimestamp, DataHora) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE 
+		keyId = VALUES(keyId), fromMe = VALUES(fromMe), foneId = VALUES(foneId), MensagemId = VALUES(MensagemId), Mensagem = VALUES(Mensagem), TipoMensagemId = VALUES(TipoMensagemId), messageTimestamp = VALUES(messageTimestamp), DataHora = VALUES(DataHora)
 		;`;
-        queryParams = [keyid, fromme, foneid, mensagemid, mensagem, tipomensagemid, arquivoid, messagetimestamp, datahora];
+        queryParams = [keyid, fromme, foneid, mensagemid, mensagem, tipomensagemid, messagetimestamp, datahora];
       } else {
-        query = `INSERT INTO Mensagem (Id, keyId, fromMe, foneId, MensagemId, Mensagem, TipoMensagemId, ArquivoId, messageTimestamp, DataHora) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE 
-		keyId = VALUES(keyId), fromMe = VALUES(fromMe), foneId = VALUES(foneId), MensagemId = VALUES(MensagemId), Mensagem = VALUES(Mensagem), TipoMensagemId = VALUES(TipoMensagemId), ArquivoId = VALUES(ArquivoId), messageTimestamp = VALUES(messageTimestamp), DataHora = VALUES(DataHora)
+        query = `INSERT INTO Mensagem (Id, keyId, fromMe, foneId, MensagemId, Mensagem, TipoMensagemId, messageTimestamp, DataHora) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE 
+		keyId = VALUES(keyId), fromMe = VALUES(fromMe), foneId = VALUES(foneId), MensagemId = VALUES(MensagemId), Mensagem = VALUES(Mensagem), TipoMensagemId = VALUES(TipoMensagemId), messageTimestamp = VALUES(messageTimestamp), DataHora = VALUES(DataHora)
 		;`;
 
-        queryParams = [id, keyid, fromme, foneid, mensagemid, mensagem, tipomensagemid, arquivoid, messagetimestamp, datahora];
+        queryParams = [id, keyid, fromme, foneid, mensagemid, mensagem, tipomensagemid, messagetimestamp, datahora];
       }
 
       await pool.query(query, queryParams);
@@ -97,20 +98,7 @@ router.post('/mensagemapi', validateMensagemInput, async (req, res) => {
     }
   });
 
-/* exemplo: ********* pode excluir comentários
-const validateParams = [
-  param('id').isInt().withMessage('Id must be an integer'),
-  param('sequencia').notEmpty().withMessage('Sequencia cannot be empty'),
-];
-router.delete('/mensagemapid/:id/:sequencia', validateParams, async (req, res) => {
 
-antigo:
-const validateIdParam = param('id')
-  .isInt({ min: 1 })
-  .withMessage('Id must be a positive integer.');
-router.delete('/mensagemapid/:id', validateIdParam, async (req, res) => {
-**** fazer: isInt está fixo, deve mudar de acordo com o tipo
-*/
 const validateParamsMensagemapid = [
   param('id').isInt().withMessage('Id must be an bigint unsigned'),
 ];
@@ -135,6 +123,80 @@ router.delete('/mensagemapid/:id', validateParamsMensagemapid, async (req, res) 
     console.error('Erro ao apagar Mensagem:', err);
     return res.status(500).json({ success: false, message: 'Server error', error: err.message });
   }
+});
+
+// Endpoint para spIU_Mensagem
+const validateMensagemIUInput = [
+	body('keyId').notEmpty().withMessage('keyId é obrigatório.'),
+	body('fromMe').isBoolean().withMessage('fromMe deve ser um valor booleano.'),
+	body('foneId').notEmpty().withMessage('foneId é obrigatório.'),
+	body('mensagem').optional().isString().withMessage('Mensagem deve ser um texto.'),
+	body('messageTimestamp').optional().isISO8601().withMessage('messageTimestamp deve ser uma data válida no formato ISO8601.'),
+	body('dataHora').optional().isISO8601().withMessage('dataHora deve ser uma data válida no formato ISO8601.'),
+	body('keyIdMensagem').optional().isString().withMessage('keyIdMensagem deve ser um texto.'),
+	body('descricaoTipoMensagem').optional().isString().withMessage('DescricaoTipoMensagem deve ser um texto.')
+];
+router.post('/mensagemiu', validateMensagemIUInput, async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        const errorMessages = errors.array().map(error => error.msg);
+        return res.status(400).json({ 
+            success: false, 
+            message: 'Dados de entrada inválidos: ' + errorMessages.join(', '),
+            errors: errors.array() 
+        });
+    }
+
+    const {
+        id,
+        keyId,
+        fromMe,
+        foneId,
+        mensagem,
+        messageTimestamp,
+        dataHora,
+        keyIdMensagem,
+        descricaoTipoMensagem
+    } = req.body;
+
+    try {
+        const pool = await getPool();
+        
+        // Chamada para a stored procedure
+        const [results] = await pool.query(
+            'CALL spIU_Mensagem(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, @pout_Id)',
+            [
+                id || null,
+                keyId,
+                fromMe,
+                foneId,
+                mensagemId || null,
+                mensagem,
+                tipoMensagemId,
+                messageTimestamp,
+                dataHora,
+                keyIdMensagem,
+                descricaoTipoMensagem
+            ]
+        );
+
+        // Obter o ID retornado pela stored procedure
+        const [idResult] = await pool.query('SELECT @pout_Id as id');
+        const insertedId = idResult[0].id;
+
+        res.json({
+            success: true,
+            message: id ? 'Mensagem atualizada com sucesso' : 'Mensagem criada com sucesso',
+            id: insertedId
+        });
+    } catch (err) {
+        console.error('Erro ao processar mensagem:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Erro ao processar mensagem',
+            error: err.message
+        });
+    }
 });
 
 module.exports = router;

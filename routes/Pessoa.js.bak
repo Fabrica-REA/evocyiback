@@ -15,11 +15,11 @@ router.get('/pessoaapi', async (req, res) => {
 
       const json_results = results.map(row => ({
 		id: row.Id,
-		foneid: row.foneId,
-		negocio: row.Negocio,
-		descricao: row.Descricao,
-		website: row.website,
-		nome: row.Nome,
+				foneid: row.foneId,
+				negocio: row.Negocio,
+				descricao: row.Descricao,
+				website: row.website,
+				nome: row.Nome,
 		
       }));
 
@@ -31,11 +31,8 @@ router.get('/pessoaapi', async (req, res) => {
   });
 
 const validatePessoaInput = [
-	body('negocio').optional({ values: 'falsy' }).isInt().withMessage('Código Negocio deve ser um inteiro se informado.'),
+	body('negocio').optional({ values: 'falsy' }).isBoolean().withMessage('Negócio deve ser um valor booleano (true/false) se informado.'),
 	body('foneid').notEmpty().withMessage('foneId é obrigatória.'),
-	body('descricao').notEmpty().withMessage('Descricao é obrigatória.'),
-	body('website').notEmpty().withMessage('website é obrigatória.'),
-	body('nome').notEmpty().withMessage('Nome é obrigatória.'),
 	body('id').optional({ values: 'falsy' }).isInt({ min: 1 }).withMessage('Código Id deve ser um inteiro positivo se informado.'),
 ];
 router.post('/pessoaapi', validatePessoaInput, async (req, res) => {
@@ -48,7 +45,8 @@ router.post('/pessoaapi', validatePessoaInput, async (req, res) => {
 			errors: errors.array() 
 		});
 	}
-    const { id, foneid, negocio, descricao, website, nome } = req.body;
+  const nome = req.body.nome === null || req.body.nome === undefined ? '' : req.body.nome;
+  const { id, foneid, negocio, descricao, website } = req.body;
 
     try {
       const pool = await getPool();

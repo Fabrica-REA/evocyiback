@@ -1,6 +1,6 @@
 /*
 Descrição: API para a Página de cadastro da tabela Pessoa
-Autor    : CYI 28/07/2025
+Autor    : CYI 30/07/2025
 */
 const express = require('express');
 const { param, body, validationResult } = require('express-validator');
@@ -11,7 +11,8 @@ router.get('/pessoaapi', async (req, res) => {
 	const id = req.query.id;
     try {
       const pool = await getPool(); 
-      const [[results]] = await pool.query('CALL PessoaS(?)', [id]);
+      const [[results]] = await pool.query('CALL PessoaS(?)', 
+		[id]);
 
       const json_results = results.map(row => ({
 		id: row.Id,
@@ -31,8 +32,11 @@ router.get('/pessoaapi', async (req, res) => {
   });
 
 const validatePessoaInput = [
-	body('negocio').optional({ values: 'falsy' }).isBoolean().withMessage('Negócio deve ser um valor booleano (true/false) se informado.'),
+	body('negocio').optional({ values: 'falsy' }).isInt().withMessage('Código Negocio deve ser um inteiro se informado.'),
 	body('foneid').notEmpty().withMessage('foneId é obrigatória.'),
+	body('descricao').notEmpty().withMessage('Descricao é obrigatória.'),
+	body('website').notEmpty().withMessage('website é obrigatória.'),
+	body('nome').notEmpty().withMessage('Nome é obrigatória.'),
 	body('id').optional({ values: 'falsy' }).isInt({ min: 1 }).withMessage('Código Id deve ser um inteiro positivo se informado.'),
 ];
 router.post('/pessoaapi', validatePessoaInput, async (req, res) => {
@@ -45,8 +49,7 @@ router.post('/pessoaapi', validatePessoaInput, async (req, res) => {
 			errors: errors.array() 
 		});
 	}
-  const nome = req.body.nome === null || req.body.nome === undefined ? '' : req.body.nome;
-  const { id, foneid, negocio, descricao, website } = req.body;
+    const { id, foneid, negocio, descricao, website, nome } = req.body;
 
     try {
       const pool = await getPool();
@@ -89,6 +92,46 @@ router.post('/pessoaapi', validatePessoaInput, async (req, res) => {
     }
   });
 
+const validatePessoaInputIU = [
+	body('negocio').optional({ values: 'falsy' }).isInt().withMessage('Código Negocio deve ser um inteiro se informado.'),
+	body('foneid').notEmpty().withMessage('foneId é obrigatória.'),
+	body('descricao').notEmpty().withMessage('Descricao é obrigatória.'),
+	body('website').notEmpty().withMessage('website é obrigatória.'),
+	body('nome').notEmpty().withMessage('Nome é obrigatória.'),
+	body('id').optional({ values: 'falsy' }).isInt({ min: 1 }).withMessage('Código Id deve ser um inteiro positivo se informado.'),
+];
+router.post('/pessoaiu', validatePessoaInputIU, async (req, res) => {
+	const errors = validationResult(req);
+	if (!errors.isEmpty()) {
+		const errorMessages = errors.errors.map(error => error.msg);
+		return res.status(400).json({ 
+			success: false, 
+			message: 'Dados de entrada inválidos: ' + errorMessages.join(''),
+			errors: errors.array() 
+		});
+	}
+    const { id, foneid, negocio, descricao, website, nome } = req.body;
+
+    try {
+      const pool = await getPool();
+        const [results] = await pool.query(
+            'CALL spIU_Pessoa( 	?,  ?, ?, ?, ?, ?,	@pout_Id )', 
+			[id,  foneid, negocio, descricao, website, nome ]
+		);
+        const [idResult] = await pool.query('SELECT @pout_Id as id');
+        const insertedId = idResult[0].id;
+
+        res.json({
+            success: true,
+            message: id ? 'Mensagem atualizada com sucesso' : 'Mensagem criada com sucesso',
+            id: insertedId
+        });
+
+    } catch (err) {
+      console.error('Erro ao atualizar:', err);
+      res.status(500).json({ success: false, message: 'Server error', error: err.message });
+    }
+  });
 /* exemplo: ********* pode excluir comentários
 const validateParams = [
   param('id').isInt().withMessage('Id must be an integer'),
