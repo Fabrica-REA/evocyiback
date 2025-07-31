@@ -24,14 +24,11 @@ const mensagemarquivoRoutes = require('./routes/MensagemArquivo');
 const grupoRoutes = require('./routes/Grupo');
 const grupo2Routes = require('./routes/Grupo2');
 // ____________________ end import routes ____________________
-console.log({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_DATABASE,
-  connectionLimit: parseInt(process.env.DB_CONNECTION_LIMIT) || 10,
-})
 const app = express();
+const skipLocalhost = (req) => {
+  const ip = req.ip || req.connection.remoteAddress;
+  return ip === '127.0.0.1' || ip === '::1';
+};
 const config = {
   db: {
     host: process.env.DB_HOST,
@@ -48,7 +45,8 @@ const config = {
   },
   rateLimit: {
     windowMs: 15 * 60 * 1000,
-    max: 100,
+    max: 500,
+    skip: skipLocalhost,
   },
 };
 const limiter = rateLimit(config.rateLimit);
