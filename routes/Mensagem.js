@@ -96,11 +96,8 @@ router.post('/mensagemapi', validateMensagemInput, async (req, res) => {
   });
 
 const validateMensagemInputIU = [
-	body('mensagemid').optional({ values: 'falsy' }).isInt().withMessage('Código MensagemId deve ser um inteiro se informado.'),
-	body('tipomensagemid').optional({ values: 'falsy' }).isInt().withMessage('Código TipoMensagemId deve ser um inteiro se informado.'),
 	body('keyid').notEmpty().withMessage('keyId é obrigatória.'),
 	body('foneid').notEmpty().withMessage('foneId é obrigatória.'),
-	body('id').optional({ values: 'falsy' }).isInt({ min: 1 }).withMessage('Código Id deve ser um inteiro positivo se informado.'),
 ];
 router.post('/mensagemiu', validateMensagemInputIU, async (req, res) => {
 	const errors = validationResult(req);
@@ -112,32 +109,23 @@ router.post('/mensagemiu', validateMensagemInputIU, async (req, res) => {
 			errors: errors.array() 
 		});
 	}
-    const { id, keyid, fromme, foneid, mensagemid, mensagem, tipomensagemid, messagetimestamp, datahora } = req.body;
-
+    const { keyid, fromme, groupid, foneid, nome,    destipomensagem, mensagem, messagetimestamp, keyidmensagem, foneidmensagem,    quotedmsg, nomearquivo, mimetype, fileSha256 } = req.body;
+//  console.log( nomearquivo, mimetype, fileSha256);
     try {
       const pool = await getPool();
         const [results] = await pool.query(
-            'CALL spIU_Mensagem( ?,  ?, ?, ?, ?, ?, ?, ?, ?,  ?, ? '
-				+ '@Id @MensagemId, @TipoMensagemId', 
-			[id,  keyid, fromme, foneid, mensagemid, mensagem, tipomensagemid, messagetimestamp, datahora,  mensagemid, tipomensagemid ]
+            'CALL spIU_Mensagem( ?, ?, ?, ?, ?,    ?, ?, ?, ?, ?,    ?, ?, ?, ?, @Id)', 
+			[keyid, fromme, groupid, foneid, nome, 
+        destipomensagem, mensagem, messagetimestamp, keyidmensagem, foneidmensagem, 
+        quotedmsg, nomearquivo, mimetype, fileSha256 ]
 		);
 
-		const [id,
-			mensagemid, tipomensagemid
-		] = await pool.query('SELECT @Id as Id, '
-			+ '@MensagemId as MensagemId, @TipoMensagemId as TipoMensagemId'
-		);
-
-
-        const insertedId = idResult[0].id;
-        const insertedMensagemId = idResult[0].mensagemid;
-		const insertedTipoMensagemId = idResult[0].tipomensagemid;
+		const [id] = await pool.query('SELECT @Id as id');
 
         res.json({
             success: true,
             message: id ? 'Mensagem atualizada com sucesso' : 'Mensagem criada com sucesso',
-            Id : idResult[0].id, 
-			MensagemId : idResult[0].mensagemid, TipoMensagemId : idResult[0].tipomensagemid
+            Id : id[0].id
         });
     } catch (err) {
       console.error('Erro ao atualizar:', err);
