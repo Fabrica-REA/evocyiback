@@ -108,13 +108,13 @@ router.post('/grupoiu', validateGrupoInputIU, async (req, res) => {
 	}
   const descricao = req.body.descricao === null || req.body.descricao === undefined ? '' : req.body.descricao;
   const dono = req.body.dono === null || req.body.dono === undefined ? '' : req.body.dono;
-    const { id, chatid, titulo } = req.body;
+    const { chatid, titulo } = req.body;
 
     try {
       const pool = await getPool();
         const [results] = await pool.query(
-            'CALL spIU_Grupo( 	?,  ?, ?, ?, ?,	@pout_Id )', 
-			[id,  chatid, dono, titulo, descricao ]
+            'CALL spIU_Grupo( 	?, ?, ?, ?,	@pout_Id )', 
+			[chatid, dono, titulo, descricao ]
 		);
         const [idResult] = await pool.query('SELECT @pout_Id as id');
         const insertedId = idResult[0].id;
