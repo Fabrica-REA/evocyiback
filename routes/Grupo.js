@@ -121,7 +121,7 @@ router.post('/grupoiu', validateGrupoInputIU, async (req, res) => {
 
         res.json({
             success: true,
-            message: id ? 'Mensagem atualizada com sucesso' : 'Mensagem criada com sucesso',
+            message: insertedId ? 'Mensagem atualizada com sucesso' : 'Mensagem criada com sucesso',
             id: insertedId
         });
 
